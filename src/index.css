@@ -1,0 +1,44 @@
+.cardsList
+{
+	overflow: hidden;
+}
+
+.cardResult
+{
+	background-color: aliceblue;
+	border: 1px black;
+	margin: 2px;
+	list-style: none;
+	width: 100%;
+}
+
+.imageOnly
+{
+	float: left;
+	width: auto;
+}
+
+.imageOnly div
+{
+	position: relative;
+	width: 100%;
+}
+
+.imageOnly img
+{
+	position: relative;
+	width: 110px;
+	height: 150px;
+}
+
+.imageOnly .cardCount
+{
+	position: absolute;
+	top: 2px;
+	right: 2px;
+	background-color: aquamarine;
+	color: darkslategray;
+	font-size: 20px;
+	font-weight: bold;
+	padding: 4px;
+}
