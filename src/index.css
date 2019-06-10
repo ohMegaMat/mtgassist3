@@ -1,3 +1,14 @@
+.buttonsListHorizontal
+{
+	overflow: hidden;
+}
+
+.buttonsListHorizontal li
+{
+	list-style: none;
+	width: 100%;
+}
+  
 .cardsList
 {
 	overflow: hidden;
@@ -27,15 +38,15 @@
 .imageOnly img
 {
 	position: relative;
-	width: 110px;
-	height: 150px;
+	width: 150px;
+	height: 210px;
 }
 
 .imageOnly .cardCount
 {
 	position: absolute;
-	top: 2px;
-	right: 2px;
+	bottom: 2px;
+	left: 2px;
 	background-color: aquamarine;
 	color: darkslategray;
 	font-size: 20px;

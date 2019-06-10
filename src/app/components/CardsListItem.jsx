@@ -42,7 +42,6 @@ class CardsListItem extends Component
 
   renderImageOnly = card =>
   {
-	  // todo: DIBUJAR CANTIDAD DE COPIAS DE ESTA CARTA
 	return (
       <li id={card.id} key={card.id} className="cardResult imageOnly border border-light" onClick={(e) => this.props.onCardClick(card.id, e)}>
 	  	<div>

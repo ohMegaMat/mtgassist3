@@ -27,7 +27,7 @@ class AppSealed extends Component
 	  let deckUpdated = Object.assign({}, deck);
 	  deckUpdated.mainboard = deck.mainboard.slice();
 	  deckUpdated.sideboard = deck.sideboard.slice();
-	  console.log( "deckUpdated "+ JSON.stringify(deckUpdated) );
+//	  console.log( "deckUpdated "+ JSON.stringify(deckUpdated) );
 	  this.setState( { deck: deckUpdated } );
   }
 

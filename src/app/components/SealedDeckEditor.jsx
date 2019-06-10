@@ -14,7 +14,7 @@ class SealedDeckEditor extends Component
 {
 	onMainBoardCardClick = cardId =>
 	{
-		console.log( "onMainBoardCardClick" );
+//		console.log( "onMainBoardCardClick" );
 
 		let { deck } = this.props;
 		let deckCopy = Object.assign({}, deck);
@@ -50,7 +50,7 @@ class SealedDeckEditor extends Component
 
 	onSideBoardCardClick = cardId =>
 	{
-		console.log( cardId );
+//		console.log( cardId );
 
 		let { deck } = this.props;
 		let deckCopy = Object.assign({}, deck);
@@ -58,19 +58,19 @@ class SealedDeckEditor extends Component
 		// SI ES LA UNICA CARTA, ELIMINARLA
 		deckCopy.sideboard = deck.sideboard.slice();
 		let cardInSideBoard = deckCopy.sideboard.find( card => card.id === cardId );
-		console.log( "cardInSideBoard "+ cardInSideBoard );
+//		console.log( "cardInSideBoard "+ cardInSideBoard );
 		if( cardInSideBoard.count > 1 ) {
 			cardInSideBoard.count--;
 		}
 		else {
 			deckCopy.sideboard = deckCopy.sideboard.filter( card => card.id !== cardId );
 		}
-		console.log( "deckCopy "+ JSON.stringify(deckCopy) );
+//		console.log( "deckCopy "+ JSON.stringify(deckCopy) );
 
 		// SI NO ES TIERRA BASICA, PASAR LA CARTA AL MAINBOARD
 		deckCopy.mainboard = deck.mainboard.slice();
 		let cardInMainBoard = deckCopy.mainboard.find( card => card.id === cardId );
-		console.log( "cardInMainBoard "+ cardInMainBoard );
+//		console.log( "cardInMainBoard "+ cardInMainBoard );
 		if( cardInMainBoard !== undefined ) {
 			cardInMainBoard.count++;
 		}
@@ -80,7 +80,7 @@ class SealedDeckEditor extends Component
 			deckCopy.mainboard.push( newCard );
 		}
 
-		console.log( "deckCopy "+ JSON.stringify(deckCopy) );
+//		console.log( "deckCopy "+ JSON.stringify(deckCopy) );
 		// ACTUALIZAR EL DECK
 		this.props.onUpdateDeck( deckCopy );
 	};
@@ -93,7 +93,7 @@ class SealedDeckEditor extends Component
 		// AGREGAR LA CARTA AL MAINBOARD
 		deckCopy.mainboard = deck.mainboard.slice();
 		let cardInMainBoard = deckCopy.mainboard.find( card => card.id === cardId );
-		console.log( "cardInMainBoard "+ cardInMainBoard );
+//		console.log( "cardInMainBoard "+ cardInMainBoard );
 		if( cardInMainBoard !== undefined ) {
 			cardInMainBoard.count++;
 		}
@@ -104,17 +104,23 @@ class SealedDeckEditor extends Component
 			deckCopy.mainboard.push( newCard );
 		}
 
-		console.log( "deckCopy "+ JSON.stringify(deckCopy) );
+//		console.log( "deckCopy "+ JSON.stringify(deckCopy) );
 		// ACTUALIZAR EL DECK
 		this.props.onUpdateDeck( deckCopy );
 	}
 
+	getBoardSize = (board) => {
+		let boardSize = 0;
+		board.map(card => boardSize += card.count);
+		return boardSize;
+	}
+	
 	render()
 	{
 		let { deck } = this.props;
 		return (
 			<div id="sealedDeckEditor">
-				<p>SideBoard ({deck.sideboard.lenght})</p>
+				<p>SideBoard ({this.getBoardSize(deck.sideboard)})</p>
 				<CardsList id="sb" cards={deck.sideboard} onCardClick={this.onSideBoardCardClick} view={VIEW_IMAGEONLY} />
 				<ul id="basicLandsList" className="cardsList">
 					<li>Lands:</li>
@@ -124,7 +130,7 @@ class SealedDeckEditor extends Component
 					<li className="cardResult imageOnly border border-light"><img alt="Mountain" src="/db/cards/Lands/Mountain.jpg" onClick={(e) => this.addCard(259, e)}/></li>
 					<li className="cardResult imageOnly border border-light"><img alt="Forest" src="/db/cards/Lands/Forest.jpg" onClick={(e) => this.addCard(262, e)}/></li>
 				</ul>
-				<p>MainBoard ({deck.mainboard.lenght})</p>
+				<p>MainBoard ({this.getBoardSize(deck.mainboard)})</p>
 				<CardsList id="mb" cards={deck.mainboard} onCardClick={this.onMainBoardCardClick} view={VIEW_IMAGEONLY} />
 			</div>
 		);

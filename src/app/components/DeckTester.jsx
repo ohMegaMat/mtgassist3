@@ -1,17 +1,38 @@
 import React, { Component } from "react";
+import CardsList from "./CardsList";
+import { VIEW_STANDARD, VIEW_IMAGEONLY } from "../components/CardsListItem";
 
 class DeckTester extends Component
 {
-	constructor()
+	constructor(props)
 	{
-		super()
-		let { deck } = this.props;
+		super(props);
+		let { deck } = props;
 		let deckCopy = Object.assign({}, deck);
 		deckCopy.mainboard = deck.mainboard.slice();
 		deckCopy.sideboard = deck.sideboard.slice();
 		this.state = { deck: deckCopy, library: [], hand: [], battlefield: [], graveyard: [], exile: [], life: 20 };
 	}
 
+	componentWillReceiveProps(nextProps)
+	{
+		let { deck } = nextProps;
+		let deckCopy = Object.assign({}, deck);
+		deckCopy.mainboard = deck.mainboard.slice();
+		deckCopy.sideboard = deck.sideboard.slice();
+		// PARA CADA CARTA EN mainboard CREA UNA COPIA POR count PARA library
+		var cards = [];
+		deckCopy.mainboard.forEach(card => {
+			for (let i = 0; i < card.count; ++i) {
+				var cardCopy = Object.assign({}, card);
+				cardCopy.count = 1;
+				cardCopy.indexInDeck = i;
+				cards.push( cardCopy );
+			}
+		});
+		this.setState({ deck: deckCopy, library: cards });
+	}
+	
 	updateState = state =>
 	{
 		let stateUpdated = Object.assign({}, state);
@@ -20,14 +41,14 @@ class DeckTester extends Component
 		stateUpdated.battlefield = state.battlefield.slice();
 		stateUpdated.graveyard = state.graveyard.slice();
 		stateUpdated.exile = state.exile.slice();
-		console.log( "stateUpdated "+ JSON.stringify(stateUpdated) );
+//		console.log( "stateUpdated "+ JSON.stringify(stateUpdated) );
 		this.setState( stateUpdated );
 	}
  
 	fold = (state, shouldSetState) =>
 	{
-		var foldedState = state.copy;
-		foldedState.library = foldedState.library.concat( this.state.hand.slice() ).concat( this.state.battlefield.slice() ).concat( this.state.graveyard.slice() ).concat( this.state.exile.slice() );
+		let foldedState = Object.assign({}, state);
+		foldedState.library = state.library.slice().concat( state.hand.slice() ).concat( state.battlefield.slice() ).concat( state.graveyard.slice() ).concat( state.exile.slice() );
 		foldedState.hand = [];
 		foldedState.battlefield = [];
 		foldedState.graveyard = [];
@@ -39,24 +60,22 @@ class DeckTester extends Component
 	
 	restart()
 	{
-		let stateUpdated = Object.assign({}, this.state);
 		// METE TODAS LAS CARTAS EN library
-		stateUpdated = this.fold( stateUpdated );
+		let stateUpdated = this.fold( this.state );
 		// MEZCLA Y ROBA 7 CARTAS
-		stateUpdated = this.shuffleLibrary();
-		stateUpdated = this.drawCards( 7 );
+		stateUpdated = this.shuffleLibrary( stateUpdated );
+		stateUpdated = this.drawCards(stateUpdated, false, 7);
 		this.setState( stateUpdated );
 	}
 	
 	mulligan()
 	{
-		let stateUpdated = Object.assign({}, this.state);
-		var mulliganSize = this.state.hand.lenght - 1;
+		var mulliganSize = this.state.hand.length > 0 ? this.state.hand.length - 1 : 0;
 		// METE TODAS LAS CARTAS EN library
-		stateUpdated = this.fold( stateUpdated );
+		let stateUpdated = this.fold( this.state );
 		// MEZCLA Y ROBA mulliganSize CARTAS
-		stateUpdated = this.shuffleLibrary();
-		stateUpdated = this.drawCards( mulliganSize );
+		stateUpdated = this.shuffleLibrary( stateUpdated );
+		stateUpdated = this.drawCards(stateUpdated, false, mulliganSize);
 		this.setState( stateUpdated );
 	}
 	
@@ -74,7 +93,7 @@ class DeckTester extends Component
 	
 	shuffleLibrary = (state, shouldSetState) =>
 	{
-		let stateUpdated = Object.assign({}, this.state);
+		let stateUpdated = Object.assign({}, state);
 		stateUpdated.library = state.library.slice();
 		var i, j, temp;
 		for(i = stateUpdated.library.length - 1; i > 0; i--) {
@@ -90,54 +109,64 @@ class DeckTester extends Component
 	
 	onHandCardClick = cardId =>
 	{
-		console.log( "onMainBoardCardClick" );
-
-		let { deck } = this.props;
-		let deckCopy = Object.assign({}, deck);
+		let stateUpdated = Object.assign({}, this.state);
 
 		// SI ES LA UNICA CARTA, ELIMINARLA
-		deckCopy.mainboard = deck.mainboard.slice();
-		let cardInMainBoard = deckCopy.mainboard.find( card => card.id === cardId );
-		if( cardInMainBoard.count > 1 ) {
-			cardInMainBoard.count--;
-		}
-		else {
-			deckCopy.mainboard = deckCopy.mainboard.filter( card => card.id !== cardId );
+		stateUpdated.hand = this.state.hand.slice();
+		let cardInHand = stateUpdated.hand.find( card => card.id === cardId );
+		if (cardInHand.count > 1) {
+			cardInHand.count--;
+		} else {
+			stateUpdated.hand = stateUpdated.hand.filter(card => card.id !== cardId);
 		}
 
-		// SI NO ES TIERRA BASICA, PASAR LA CARTA AL SIDEBOARD
-		let landCard = LANDS_DEFINITION.find( card => card.id === cardId );
-		if( landCard === undefined ) {
-			deckCopy.sideboard = deck.sideboard.slice();
-			let cardInSideBoard = deckCopy.sideboard.find( card => card.id === cardId );
-			if( cardInSideBoard !== undefined ) {
-				cardInSideBoard.count++;
-			}
-			else {
-				let newCard = Object.assign({}, cardInMainBoard);
-				newCard.count = 1;
-				deckCopy.sideboard.push( newCard );
-			}
+		// PASAR LA CARTA AL BATTLEFIELD
+		stateUpdated.battlefield = this.state.battlefield.slice();
+		let cardInBattlefield = stateUpdated.battlefield.find( card => card.id === cardId );
+		if (cardInBattlefield !== undefined) {
+			cardInBattlefield.count++;
+		} else {
+			let newCard = Object.assign({}, cardInBattlefield);
+			newCard.count = 1;
+			stateUpdated.battlefield.push(newCard);
 		}
 
 		// ACTUALIZAR EL DECK
-		this.props.onUpdateDeck( deckCopy );
+		this.setState(stateUpdated);
 	};
 
 	render()
 	{
 		return (
 			<div id="deckTester">
-				<ul>
-					<li><button onClick={this.restart}>Restart</button></li>
-					<li><button onClick={this.mulligan}>Mulligan</button></li>
-					<li><button onClick={(e) => this.drawCards(this.state, true, 1, e)}>Draw</button></li>
-					<li><button onClick={(e) => this.props.onCardClick(this.state, true, e)}>Shuffle</button></li>
+				<ul className="buttonsListHorizontal">
+					<li>
+						<button onClick={e => this.restart(e)}>Restart</button>
+					</li>
+					<li>
+						<button onClick={e => this.mulligan(e)}>Mulligan</button>
+					</li>
+					<li>
+						<button onClick={e => this.drawCards(this.state, true, 1, e)}>Draw</button>
+					</li>
+					<li>
+						<button onClick={e => this.props.onCardClick(this.state, true, e)}>Shuffle</button>
+					</li>
 				</ul>
-				<p>Hand ({this.hand.lenght})</p>
-				<CardsList cards={this.hand} onCardClick={this.onHandCardClick} view={VIEW_IMAGEONLY} />
-				<p>Battlefield ({this.battlefield.lenght})</p>
-				<CardsList cards={this.battlefield} onCardClick={this.onBattlefieldCardClick} view={VIEW_IMAGEONLY} />
+				<p>Hand ({this.state.hand.length})</p>
+				<CardsList
+					id="hand"
+					cards={this.state.hand}
+					onCardClick={this.onHandCardClick}
+					view={VIEW_IMAGEONLY}
+				/>
+				<p>Battlefield ({this.state.battlefield.length})</p>
+				<CardsList
+					id="bf"
+					cards={this.state.battlefield}
+					onCardClick={this.onBattlefieldCardClick}
+					view={VIEW_IMAGEONLY}
+				/>
 			</div>
 		);
 	}
